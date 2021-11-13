@@ -32,8 +32,22 @@ Usage:
 	run
 */
 
+#ifdef _WIN32
 #include "stdafx.h"
 #include <winsock.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+typedef int SOCKET;
+typedef struct sockaddr_in SOCKADDR_IN;
+typedef const struct sockaddr* LPSOCKADDR;
+//#define IPPROTO_TCP 0
+#define INVALID_SOCKET (-1)
+#define SOCKET_ERROR (-1)
+#define Sleep(a) usleep((a)*1000)
+#define closesocket close
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -59,10 +73,10 @@ Usage:
 
 SOCKET openGDB();
 void openJag();
-void bye(char* msg);
+void bye(const char* msg);
 char get(SOCKET s);
 void put(SOCKET s, char);
-void jcp(char* file);
+void jcp(const char* file);
 
 int jping();
 void jcheckup();
@@ -74,7 +88,7 @@ int jreadhex(int addr, char* buf, int len);
 
 int computeSignal(int exceptionVector);
 
-char *hex = "0123456789abcdef";
+const char *hex = "0123456789abcdef";
 usb_dev_handle* udev = 0;
 FILE* flog;
 int logdir = -1;
@@ -168,7 +182,7 @@ int main(int argc, char *argv[])
 				case 'M':
 					sscanf(buf+1, "%x,%x", &addr, &len);
 					
-					debug("Write memory %p, %d bytes\n", addr, len);
+					debug("Write memory 0x%x, %d bytes\n", addr, len);
 
 					for (skip = 0; buf[skip] != ':'; skip++)	;
 					if (len < 1) {
@@ -192,7 +206,7 @@ int main(int argc, char *argv[])
 				// Insert breakpoint
 				case 'Z':
 					sscanf(buf+1, "%x,%x,%x", &skip, &addr, &len);
-					debug("Add a breakpoint %p, size %d\n", addr, len);
+					debug("Add a breakpoint 0x%x, size %d\n", addr, len);
 
 					if (addr >= 0 && addr < 0x200000) {
 						jwrite(addr, trap, 2);
@@ -205,7 +219,7 @@ int main(int argc, char *argv[])
 				// Remove breakpoint
 				case 'z':
 					sscanf(buf+1, "%x,%x,%x", &skip, &addr, &len);
-					debug("Remove a breakpoint %p, size %d\n", addr, len);
+					debug("Remove a breakpoint 0x%x, size %d\n", addr, len);
 
 					if (addr >= 0 && addr < 0x200000) {
 						memcpy(buf, bpoint+addr*2, 4);	// Restore old code from bpoint buffer
@@ -221,7 +235,7 @@ int main(int argc, char *argv[])
 				// Read memory contents
 				case 'm':
 					sscanf(buf+1, "%x,%x", &addr, &len);
-					debug("Read memory %p, %d bytes\n", addr, len);
+					debug("Read memory 0x%x, %d bytes\n", addr, len);
 					dptr += len*2;	// Transfer data by rounding up the copy size
 					jreadhex((addr)&(~1), buf, (len+1)&(~1));
 					if (addr & 1)	// Shift left if we rounded off the address
@@ -237,7 +251,7 @@ int main(int argc, char *argv[])
 						sscanf(buf+1, "%x", &addr);
 						runcmd[2] = addr >> 16;
 						runcmd[3] = addr & 65535;
-						debug("New PC = %p\n", addr);
+						debug("New PC = 0x%x\n", addr);
 					}
 					assert(usb_control_msg(udev, 0x40, 0xfe, 10, EZ_CMD, (char*)runcmd, 10, 1000) == 10);
 					//*dptr++ = 'O';	*dptr++ = 'K';
@@ -284,8 +298,8 @@ int main(int argc, char *argv[])
 	usb_close(udev);
 }
 
-void bye(char* msg) {
-	printf(msg);
+void bye(const char* msg) {
+	printf("%s", msg);
 	exit(1);
 }
 
@@ -373,6 +387,7 @@ void jreset() {
 	// We have to use scan mode to access registers (TurboWrite uses DMA engine)
 	// Reset is 0xc028=2, 0xc028=0
 	unsigned char cmd[10] = {0xB6, 0xC3, 0x04, 0x00, 0x00, 0x28, 0xC0, 0x02, 0x00, 0x00};
+
 	assert(usb_control_msg(udev, 0x40, 0xff, 10, 0x304C, (char*)cmd, 10, 1000) == 10);
 	cmd[7] = 0;
 	assert(usb_control_msg(udev, 0x40, 0xff, 10, 0x304C, (char*)cmd, 10, 1000) == 10);
@@ -380,9 +395,11 @@ void jreset() {
 
 // Open a socket on localhost for GDB
 SOCKET openGDB() {
+#ifdef _WIN32
 	WORD wVersionRequested = MAKEWORD(1,1);
 	WSADATA wsaData;
 	WSAStartup(wVersionRequested, &wsaData);
+#endif
 
 	int port = DEFAULT_PORT;
 	SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -432,7 +449,7 @@ void put(SOCKET s, char c) {
 // Write len bytes from 68K memory at addr from buf
 // Do not call unless you know the stub is idle
 void jwrite(int addr, char* buf, int blen) {
-	debug("Write to Jaguar address %p, %d bytes\n", addr, blen);
+	debug("Write to Jaguar address 0x%x, %d bytes\n", addr, blen);
 
 	assert(0 == (blen&1) && 0 == (addr & 1));
 	while (blen > 0) {	// Do it in chunks
@@ -522,7 +539,7 @@ int jreadhex(int addr, char* buf, int len) {
 }
 
 // Send a boot file to the Jaguar via JCP (such as jdbug.cof)
-void jcp(char* file) {
+void jcp(const char* file) {
 	// Pull the whole file into memory
 	uchar *fdata = (uchar*)malloc(4200000);	// 4MB + header
 	memset(fdata, 0, 4200000);
