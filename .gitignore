@@ -1,0 +1,7 @@
+/jserve
+*.o
+*.obj
+.*.swp
+*~
+# jserve creates a log of the entire session each time it runs. Ignore it.
+jdb.log
