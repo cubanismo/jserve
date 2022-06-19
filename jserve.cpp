@@ -202,7 +202,9 @@ int main(int argc, char *argv[])
 						// Use backup to handle odd address and odd length requests
 						if (0 != (addr & 1))	{	addr--;	len++;	}
 						if (0 != (len & 1))		{	len++;	}
-						memcpy(buf+1+skip, bpoint+addr*2, len*2);
+						if (addr+len <= 0x200000)
+							memcpy(buf+1+skip, bpoint+addr*2, len*2);
+						else {} // XXX Garbage in unaligned areas
 						jwritehex(addr, buf+1+skip, len);
 						*dptr++ = 'O';	*dptr++ = 'K';
 					}
