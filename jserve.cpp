@@ -96,6 +96,9 @@ int logdir = -1;
 char bpoint[0x200000*2];	// Shadow data for software breakpoints (in hex)
 unsigned short defregs[REG_BYTES/2];
 
+static bool bank2 = true;
+static bool sixMB = false;
+
 int main(int argc, char *argv[])
 {
 	bool ValidCmd=false;
@@ -631,6 +634,13 @@ void jcp(const char* file) {
 		curbase += 4064;
 
 		int start = (flen <= 4064) ? base : -1;
+		if (start != -1) {
+			if (bank2) {
+				start |= 0x10000000;
+			} else if (sixMB) {
+				start |= 0x70000000;
+			}
+		}
 		block[0xFE6] = start & 255;
 		block[0xFE7] = (start >> 8) & 255;
 		block[0xFE4] = (start >> 16) & 255;
