@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 		openJag();
 
 		// Initialize the registers to something meaningful
-		memset(bpoint, '0', 2048*1024);
+		memset(bpoint, '0', 2048*1024 * 2);
 		memset(defregs, 0, sizeof(defregs));
 		defregs[30] = 0x1f00;	// Stack pointer (1f fff8)
 		defregs[31] = 0xf8ff;
