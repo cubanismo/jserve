@@ -48,6 +48,7 @@ typedef const struct sockaddr* LPSOCKADDR;
 #define Sleep(a) usleep((a)*1000)
 #define closesocket close
 #endif
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -409,9 +410,15 @@ SOCKET openGDB() {
 	saServer.sin_addr.s_addr = INADDR_ANY;
 	saServer.sin_port = htons(port);
 	int ret = bind(listenSocket, (LPSOCKADDR)&saServer, sizeof(struct sockaddr));
-	assert(ret != SOCKET_ERROR);
+	if (ret == SOCKET_ERROR) {
+		printf("Bind error: %s\n", strerror(errno));
+		assert(ret != SOCKET_ERROR);
+	}
 	ret = listen(listenSocket, SOMAXCONN);
-	assert(ret != SOCKET_ERROR);
+	if (ret == SOCKET_ERROR) {
+		printf("listen error: %s\n", strerror(errno));
+		assert(ret != SOCKET_ERROR);
+	}
 
 	printf("Waiting on localhost:%d...", port);
 
