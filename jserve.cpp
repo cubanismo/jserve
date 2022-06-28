@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
 		// Parse GDB commands as they are sent, replying to them (with Jaguar's help)
 		int chatting = 1, running = 0, sigval = 5;
-		char buf[65536], trap[2] = {0x4e, 0x41};
+		char buf[131072], trap[2] = {0x4e, 0x41};
 
 		while (chatting) {
 			char *dptr = buf;
@@ -243,9 +243,9 @@ int main(int argc, char *argv[])
 					sscanf(buf+1, "%x,%x", &addr, &len);
 					debug("Read memory 0x%x, %d bytes\n", addr, len);
 					dptr += len*2;	// Transfer data by rounding up the copy size
-					jreadhex((addr)&(~1), buf, (len+1)&(~1));
-					if (addr & 1)	// Shift left if we rounded off the address
-						off = 2;
+					off = (addr & 3);	// Shift left if we'll round off the address
+					jreadhex((addr)&(~3), buf, (len+off+3)&(~3));
+					off *= 2;	// Convert shift from byte width to hex string width
 					break;
 				// Single step
 				case 's':
