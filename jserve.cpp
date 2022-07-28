@@ -363,6 +363,7 @@ void jcheckup() {
 			Sleep(100);
 			jcp("jdb.cof");
 			printf("Establishing contact with Jaguar stub...");
+			fflush(stdout);
 			for (int i = 0; i < 50 && !jping(); i++);
 		} 
 		if (jping())
@@ -652,7 +653,7 @@ void jcp(const char* file) {
 		block[0xFE9] = nextez >> 8;
 		nextez = (0x1800 == nextez) ? 0x2800 : 0x1800;
 
-		int len = ((flen <= 4064) ? (flen+3)>>2 : 4064>>2) - 1;
+		int len = (flen <= 4064) ? flen : 4064;
 		block[0xFEA] = len & 255;
 		block[0xFEB] = (len >> 8) & 255;
 		flen -= 4064;

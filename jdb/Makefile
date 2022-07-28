@@ -3,8 +3,8 @@
 #====================================================================
 
 STADDR = 2000
-MACFLAGS = -fb -g -i../include
-ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 2800
+MACFLAGS = +o0 +o1 +o2 -fb
+ALNFLAGS = -w -v -e -rd -a $(STADDR) x 2800
 
 #====================================================================
 #       Default Rules
@@ -12,7 +12,7 @@ ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 2800
 .SUFFIXES:      .o .s
 
 .s.o:
-	mac $(MACFLAGS) $<
+	rmac $(MACFLAGS) $<
 
 #====================================================================
 #       EXECUTABLES
@@ -21,7 +21,7 @@ ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 2800
 OBJ = jdb.o
  
 jdb.cof: $(OBJ)
-	aln $(ALNFLAGS) -o jdb.cof $(OBJ)
+	rln $(ALNFLAGS) -o jdb.cof $(OBJ)
 
 #############################################################################
 
