@@ -1,4 +1,5 @@
 /jserve
+/jdb/jdb.cof
 *.o
 *.obj
 .*.swp
