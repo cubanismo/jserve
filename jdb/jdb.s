@@ -2,11 +2,11 @@
 ;;
 ;; This works with jserve through EZ HOST memory to present a GDB stub
 
-regs	EQU	$2C00
+regs	EQU	$1300	; 180 (0xb4) bytes
 
-errno	EQU	$2FF0
-errf1	EQU	$2FF4	; Bus error frame info (like we need this!)
-errf2	EQU	$2FF8
+errno	EQU	$13B4
+errf1	EQU	$13B8	; Bus error frame info (like we need this!)
+errf2	EQU	$13BC
 
 BORD1	EQU	$F0002A
 BG	EQU	$F00058

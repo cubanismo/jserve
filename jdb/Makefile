@@ -2,7 +2,7 @@
 #       Macro & Assembler flags
 #====================================================================
 
-STADDR = 2000
+STADDR = 1000
 MACFLAGS = +o0 +o1 +o2 -fb
 ALNFLAGS = -w -v -e -rd -a $(STADDR) x 2800
 

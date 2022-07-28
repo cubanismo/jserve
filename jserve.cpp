@@ -61,7 +61,7 @@ typedef const struct sockaddr* LPSOCKADDR;
 #define EZ_OPCODE		0x3808
 #define EZ_CMD			0x3800
 
-#define JAG_REGS		0x2C00
+#define JAG_REGS		0x1300
 #define REG_BYTES		180
 
 #define	ENBIGEND(_x) (((_x)[0] << 24) + ((_x)[1] << 16) + ((_x)[2] << 8) + (_x)[3])
@@ -96,7 +96,7 @@ int logdir = -1;
 char bpoint[0x200000*2];	// Shadow data for software breakpoints (in hex)
 unsigned short defregs[REG_BYTES/2];
 
-static bool bank2 = true;
+static bool bank2 = false;
 static bool sixMB = false;
 
 int main(int argc, char *argv[])
